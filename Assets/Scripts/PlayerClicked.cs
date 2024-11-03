@@ -18,28 +18,27 @@ public class PlayerClicked : NetworkBehaviour {
     }
 
     [Rpc(SendTo.ClientsAndHost)]
-    private void ChangeSpriteColorRpc(ulong targetPlayerId)
-    {
-        // Only change the color if this is the targeted player
-        if (NetworkObjectId == targetPlayerId)
-        {
-            _spriteRenderer.color = Color.green;
-        }
+    private void ChangeSpriteColorRpc() {
+        _spriteRenderer.color = Color.green;
     }
     
     [Rpc(SendTo.Server)]
-    void HandlePlayerClickedRpc(ulong clientId, ulong targetObjectId, RpcParams rpcParams = default) {
+    void HandlePlayerClickedRpc(RpcParams rpcParams = default) {
+        var clientId = rpcParams.Receive.SenderClientId;
+        var targetObjectId = NetworkObjectId;
         Debug.Log($"Client {clientId} clicked on object {targetObjectId}");
-        ChangeSpriteColorRpc(targetObjectId);
+        //ChangeSpriteColorRpc(targetObjectId);
+        ChangeSpriteColorRpc();
     }
 
     private void OnMouseDown() {
         //if (!IsOwner) return;
         //_spriteRenderer.color = Color.green;
-        var clientId = NetworkManager.Singleton.LocalClientId; // the ID of the client
-        var objectId = NetworkObjectId; // The ID of the player object that was clicked
+        //var clientId = NetworkManager.Singleton.LocalClientId; // the ID of the client
+        //var objectId = NetworkObjectId; // The ID of the player object that was clicked
 
         // Send both player IDs to the server for processing
-        HandlePlayerClickedRpc(clientId, objectId);
+        //HandlePlayerClickedRpc(clientId, objectId);
+        HandlePlayerClickedRpc();
     }
 }

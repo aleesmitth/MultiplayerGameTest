@@ -6,7 +6,15 @@ public class PlayerMovement : NetworkBehaviour {
     
     [SerializeField] private float moveSpeed = 5f;
     private Rigidbody2D _rb;
-    private readonly NetworkVariable<Vector2> _movement = new NetworkVariable<Vector2>();
+    private readonly NetworkVariable<Vector2> _movement = new();
+    
+    public override void OnNetworkSpawn() {
+        base.OnNetworkSpawn();
+        if (IsOwner) {
+            GetComponent<PlayerInput>().enabled = true;
+        }
+    }
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start() {
         _rb = GetComponent<Rigidbody2D>();
@@ -18,14 +26,18 @@ public class PlayerMovement : NetworkBehaviour {
     }
 
     public void Move(InputAction.CallbackContext context) {
-        if (IsOwner) {
-            var direction = context.ReadValue<Vector2>();
-            MoveRpc(direction);
-        }
+        if (!IsOwner) return;
+        var direction = context.ReadValue<Vector2>();
+        MoveRpc(direction);
     }
 
     [Rpc(SendTo.Server)]
     private void MoveRpc(Vector2 direction, RpcParams rpcParams = default) {
+        // server validates movement
+        if (rpcParams.Receive.SenderClientId != OwnerClientId) {
+            Debug.LogWarning($"Client {rpcParams.Receive.SenderClientId} attempted to control a player ({OwnerClientId}) they do not own.");
+            return;
+        }
         _movement.Value = direction * moveSpeed;
     }
 }

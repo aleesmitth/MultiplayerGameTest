@@ -45,7 +45,7 @@ public class PlayerClicked : NetworkBehaviour {
     void HandlePlayerClickedRpc(string selectedLetter, RpcParams rpcParams = default) {
         var clientId = rpcParams.Receive.SenderClientId;
         var objectId = NetworkObjectId;
-        Debug.Log($"Client {clientId} clicked on object {objectId}");
+        Debug.Log($"Client {clientId} clicked on object {objectId} owned by {OwnerClientId}");
         
         // if server says its valid action
         ChangeSpriteColorGreenRpc();
